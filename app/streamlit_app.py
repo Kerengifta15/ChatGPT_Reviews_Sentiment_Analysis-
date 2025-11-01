@@ -42,6 +42,34 @@ if "sentiment" not in df.columns:
     X_vec = vectorizer.transform(df["clean_review"])
     df["sentiment"] = model.predict(X_vec)
 
+# --- Sidebar Filters and Quick Stats ---
+st.sidebar.markdown("---")
+st.sidebar.header("📈 Quick Stats")
+
+if 'rating' in df.columns:
+    avg_rating = round(df['rating'].mean(), 2)
+    st.sidebar.metric("Average Rating ⭐", avg_rating)
+    st.sidebar.metric("Total Reviews", len(df))
+    st.sidebar.metric("Unique Users", df['username'].nunique() if 'username' in df.columns else "N/A")
+
+st.sidebar.markdown("---")
+st.sidebar.header("🔍 Filter Reviews")
+
+# Apply filters before visualizations
+if 'rating' in df.columns:
+    min_r = int(df['rating'].min())
+    max_r = int(df['rating'].max())
+    rating_filter = st.sidebar.slider("Filter by Rating", min_r, max_r, (min_r, max_r))
+    df = df[(df['rating'] >= rating_filter[0]) & (df['rating'] <= rating_filter[1])]
+
+if 'sentiment' in df.columns:
+    selected_sentiments = st.sidebar.multiselect(
+        "Select Sentiment",
+        options=df['sentiment'].unique(),
+        default=df['sentiment'].unique()
+    )
+    df = df[df['sentiment'].isin(selected_sentiments)]
+
 # Dataset Overview
 st.subheader("📘 Dataset Overview")
 st.dataframe(df.head(10))
